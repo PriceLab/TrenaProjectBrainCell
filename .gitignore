@@ -1,3 +1,8 @@
+inst/extdata/expression/cell_mats
+inst/extdata/expression/old_data
+inst/extdata/expression/results
+inst/gsm/tbl.models.brain.microglia.May30.RData
+
 # History files
 .Rhistory
 .Rapp.history
