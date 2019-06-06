@@ -181,7 +181,10 @@ test_buildSingleGeneModel_slowGenes <- function()
    slowGenes <- c("SF3A2", "ZNF764", "PRR12", "ALDH16A1", "EIF1AD", "ZNF44")
    genome <- "hg38"
    targetGene <- slowGenes[1]
+   setTargetGene(tp, slowGenes[1])
 
+   tss <- getTranscriptsTable(tp, targetGene)$tss
+   
    tbl.regions <- getEnhancers(tp)[, c("chrom", "start", "end")]
    tbl.regions <- tbl.regions[order(tbl.regions$start, decreasing=FALSE),]
    matrix.name <- "Micro_TYROBP"
@@ -200,13 +203,13 @@ test_buildSingleGeneModel_slowGenes <- function()
                       annotationDbFile=dbfile(org.Hs.eg.db),
                       motifDiscovery="builtinFimo",
                       tfPool=allKnownTFs(),
-                      tfMapping=c("MotifDB", "TFClass"),
-                      tfPrefilterCorrelation=0.1,
+                      tfMapping=c("MotifDB"), # , "TFClass"),
+                      tfPrefilterCorrelation=0.5,
                       orderModelByColumn="rfScore",
                       solverNames=c("lasso", "lassopv", "pearson", "randomForest", "ridge", "spearman"))
 
    fpBuilder <- FootprintDatabaseModelBuilder(genome, targetGene,  build.spec, quiet=FALSE)
-   system.time(suppressWarnings(x <- build(fpBuilder)))
+   print(system.time(suppressWarnings(x <- build(fpBuilder))))
 
    checkEquals(sort(names(x)), c("model", "regulatoryRegions"))
    tbl.regulatoryRegions <- x$regulatoryRegions
