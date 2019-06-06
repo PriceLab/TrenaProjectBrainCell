@@ -4,28 +4,28 @@
 #' @importFrom AnnotationDbi select
 #' @import org.Hs.eg.db
 #'
-#' @title TrenaProjectLiver-class
+#' @title TrenaProjectBrainCell-class
 #'
-#' @name TrenaProjectLiver-class
-#' @rdname TrenaProjectLiver-class
-#' @aliases TrenaProjectLiver
-#' @exportClass TrenaProjectLiver
+#' @name TrenaProjectBrainCell-class
+#' @rdname TrenaProjectBrainCell-class
+#' @aliases TrenaProjectBrainCell
+#' @exportClass TrenaProjectBrainCell
 #'
 
 .TrenaProjectBrainCell <- setClass("TrenaProjectBrainCell",
                                   contains="TrenaProjectHG38")
 
 #----------------------------------------------------------------------------------------------------
-#' Define an object of class TrenaProjectLiver
+#' Define an object of class TrenaProjectBrainCell
 #'
 #' @description
 #' Expression, variant and covariate data for the genes of interest (perhaps unbounded) for pre-term birth studies
 #'
-#' @rdname TrenaProjectLiver-class
+#' @rdname TrenaProjectBrainCell-class
 #'
 #' @export
 #'
-#' @return An object of the TrenaProjectLiver class
+#' @return An object of the TrenaProjectBrainCell class
 #'
 
 TrenaProjectBrainCell <- function(quiet=TRUE)
