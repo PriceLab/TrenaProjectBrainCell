@@ -178,7 +178,7 @@ test_buildSingleGeneModel_slowGenes <- function()
 {
    printf("--- test_buildSingleGeneModel_slowGenes")
 
-   slowGenes <- c("SF3A2", "ZNF764", "PRR12", "ALDH16A1", "EIF1AD", "ZNF44")
+   slowGenes <- c("SF3A2", "ZNF764", "PRR12", "ALDH16A1", "EIF1AD", "ZNF44")  
    genome <- "hg38"
    targetGene <- slowGenes[1]
    setTargetGene(tp, slowGenes[1])
