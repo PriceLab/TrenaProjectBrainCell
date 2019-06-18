@@ -260,9 +260,9 @@ test_buildSingleGeneModel_RBMXP2 <- function()
    end <- tss + 5000
 
    tbl.regions <- data.frame(chrom=chromosome, start=start, end=end, stringsAsFactors=FALSE)
-   matrix.name <- "GTEx.liver.geneSymbols.matrix.asinh"
-   checkTrue(matrix.name %in% getExpressionMatrixNames(tp))
-   mtx <- getExpressionMatrix(tp, matrix.name)
+   matrix.name <- "Micro_TYROBP"
+   checkTrue(matrix.name %in% getExpressionMatrixNames(tpl))
+   mtx <- getExpressionMatrix(tpl, matrix.name)
 
    build.spec <- list(title="unit test on RBMXP2",
                       type="footprint.database",
@@ -270,22 +270,19 @@ test_buildSingleGeneModel_RBMXP2 <- function()
                       geneSymbol=targetGene,
                       tss=tss,
                       matrix=mtx,
-                      db.host=getFootprintDatabaseHost(tp),
-                      db.port=getFootprintDatabasePort(tp),
-                      databases=getFootprintDatabaseNames(tp),
+                      db.host=getFootprintDatabaseHost(tpl),
+                      db.port=getFootprintDatabasePort(tpl),
+                      databases=getFootprintDatabaseNames(tpl),
                       annotationDbFile=dbfile(org.Hs.eg.db),
                       motifDiscovery="builtinFimo",
                       tfPool=allKnownTFs(),
                       tfMapping="MotifDB",
                       tfPrefilterCorrelation=0.1,
                       orderModelByColumn="rfScore",
-   matrix.name <- "GTEx.liver.geneSymbols.matrix.asinh"
-   checkTrue(matrix.name %in% getExpressionMatrixNames(tp))
-   mtx <- getExpressionMatrix(tp, matrix.name)
+                      solverNames=c("lasso", "lassopv", "pearson", "randomForest", "ridge", "spearman"))
 
-   build.spec <- list(title="unit test on RBMXP2",
-                      type="footprint.database",
-                      regions=tbl.regions,
-                      geneSymbol=targetGene,
-                      tss=tss,
-                      matrix=mtx,
+   fpBuilder <- FootprintDatabaseModelBuilder(genome, targetGene,  build.spec, quiet=FALSE)
+   checkException(x <- build(fpBuilder), silent=TRUE)
+
+} # test_buildSingleGeneModel_RBMXP2
+
