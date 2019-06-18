@@ -178,7 +178,8 @@ test_buildSingleGeneModel_slowGenes <- function()
 {
    printf("--- test_buildSingleGeneModel_slowGenes")
 
-   slowGenes <- c("SF3A2", "ZNF764", "PRR12", "ALDH16A1", "EIF1AD", "ZNF44")  
+   #slowGenes <- c("SF3A2", "ZNF764", "PRR12", "ALDH16A1", "EIF1AD", "ZNF44")  
+   slowGenes <-  "SF3A2"#"ABCB4"
    genome <- "hg38"
    targetGene <- slowGenes[1]
    setTargetGene(tp, slowGenes[1])
@@ -189,7 +190,27 @@ test_buildSingleGeneModel_slowGenes <- function()
    tbl.regions <- tbl.regions[order(tbl.regions$start, decreasing=FALSE),]
    matrix.name <- "Micro_TYROBP"
    checkTrue(matrix.name %in% getExpressionMatrixNames(tp))
+   #load("/ssd/cory/github/TrenaProjectBrainCell/inst/extdata/expression/Micro_TYROBP.RData")
    mtx <- getExpressionMatrix(tp, matrix.name)
+   target.gene.expression <- mtx[targetGene,]
+
+   other.tfs <- intersect(rownames(mtx), allKnownTFs())
+
+   # is our target.gene itself a TF?  
+   # if so, it will skew the overall correlations: eliminate it
+
+   target.gene.among.tfs <- match(targetGene, other.tfs)
+   if(!is.na(target.gene.among.tfs))
+   other.tfs <- other.tfs[-target.gene.among.tfs]
+
+   mtx.test <- mtx[other.tfs,]
+
+   correlations <- abs(apply(mtx.test, 1, function(row) cor(target.gene.expression, row)))
+   range.of.correlations <- fivenum(correlations)
+   third.quartile <- range.of.correlations[4]
+   max <- range.of.correlations[5]
+
+   if(third.quartile > 0.25) # then proceed   
 
    build.spec <- list(title=sprintf("unit test on %s", targetGene), 
                       type="footprint.database",
@@ -203,8 +224,8 @@ test_buildSingleGeneModel_slowGenes <- function()
                       annotationDbFile=dbfile(org.Hs.eg.db),
                       motifDiscovery="builtinFimo",
                       tfPool=allKnownTFs(),
-                      tfMapping=c("MotifDB"), # , "TFClass"),
-                      tfPrefilterCorrelation=0.5,
+                      tfMapping=c("MotifDB", "TFClass"),
+                      tfPrefilterCorrelation=0.1,
                       orderModelByColumn="rfScore",
                       solverNames=c("lasso", "lassopv", "pearson", "randomForest", "ridge", "spearman"))
 
@@ -258,13 +279,13 @@ test_buildSingleGeneModel_RBMXP2 <- function()
                       tfMapping="MotifDB",
                       tfPrefilterCorrelation=0.1,
                       orderModelByColumn="rfScore",
-                      solverNames=c("lasso", "lassopv", "pearson", "randomForest", "ridge", "spearman"))
+   matrix.name <- "GTEx.liver.geneSymbols.matrix.asinh"
+   checkTrue(matrix.name %in% getExpressionMatrixNames(tp))
+   mtx <- getExpressionMatrix(tp, matrix.name)
 
-   fpBuilder <- FootprintDatabaseModelBuilder(genome, targetGene,  build.spec, quiet=FALSE)
-   checkException(x <- build(fpBuilder), silent=TRUE)
-
-} # test_buildSingleGeneModel_RBMXP2
-#------------------------------------------------------------------------------------------------------------------------
-
-if(!interactive())
-   runTests()
+   build.spec <- list(title="unit test on RBMXP2",
+                      type="footprint.database",
+                      regions=tbl.regions,
+                      geneSymbol=targetGene,
+                      tss=tss,
+                      matrix=mtx,

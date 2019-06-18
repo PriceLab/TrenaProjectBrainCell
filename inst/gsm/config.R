@@ -9,15 +9,16 @@ stopifnot(packageVersion("TrenaProject") >= "0.99.37")
 trenaProject <- TrenaProjectBrainCell()
 
 # I added some minor parcing of the expression matrix to get rid of genes with no expression.
-matrix.name <- "Micro_TYROBP"
+#matrix.name <- "Micro_TYROBP"
+matrix.name <- "Astro_FGFR3"
 stopifnot(matrix.name %in% getExpressionMatrixNames(trenaProject))
 mtx <- getExpressionMatrix(trenaProject, matrix.name)
-mtx.df <- as.data.frame(mtx)
-mtx.df$mean <- rowMeans(mtx.df)
-mtx.df <- mtx.df[(mtx.df$mean > 0.05),]
+#mtx.df <- as.data.frame(mtx)
+#mtx.df$mean <- rowMeans(mtx.df)
+#mtx.df <- mtx.df[(mtx.df$mean > 0.05),]
 #mtx.df <- mtx.df[!(mtx.df$mean == 0),]
-mtx.df$mean <- NULL
-mtx <- as.matrix(mtx.df)
+#mtx.df$mean <- NULL
+#mtx <- as.matrix(mtx.df)
 
 tbl.geneHancer <- get(load(system.file(package="TrenaProject", "extdata", "genomeAnnotation", "geneHancer.v4.7.allGenes.RData")))
 
@@ -26,7 +27,7 @@ tbl.geneHancer <- get(load(system.file(package="TrenaProject", "extdata", "genom
 tbl.geneInfo <- get(load(system.file(package="TrenaProject", "extdata", "geneInfoTable_hg38.RData")))
 tbl.geneInfo <- tbl.geneInfo[!duplicated(tbl.geneInfo$geneSymbol),]
 
-OUTPUTDIR <- "/tmp/MODELS.cory.brain.micro"
+OUTPUTDIR <- "/tmp/MODELS.cory.brain.astro"
 
 if(!file.exists(OUTPUTDIR))
    dir.create(OUTPUTDIR)
@@ -90,7 +91,7 @@ test_pickGuineaPigGenes <- function()
    checkTrue(gene.yes %in% tbl.geneHancer$geneSymbol)
    checkTrue(!gene.no %in% tbl.geneHancer$geneSymbol)
 
-   checkTrue(sd(mtx[gene.yes,]) > 3)
+   checkTrue(sd(mtx[gene.yes,]) > 2)
    checkTrue(sd(mtx[gene.no,]) > 0.5)
 
 } # test_pickGuineaPigGenes
@@ -154,8 +155,8 @@ test_determineRegulatoryRegions <- function()
 # generate bash script to run genes with bplapply in chunks
 
 max <- nrow(mtx)
-starts <- seq(1, max, 40)
-ends <- starts + 39
+starts <- seq(1, max, 20)
+ends <- starts + 19
 ends[length(ends)] <- max
 bashScript <- file("runByChunks20.sh")
 lines <- sprintf("Rscript runMany.R %d %d", starts, ends)
@@ -169,14 +170,14 @@ runTests <- function()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
-runTests()
+#runTests()
 
-test.goi <- as.character(pickGuineaPigGenes(mtx))
+#test.goi <- as.character(pickGuineaPigGenes(mtx))
 
 goi <- rownames(mtx)
 configurationFileRead <- TRUE
-tfPrefilterCorrelation=0.1
-correlationThreshold=0.1
+tfPrefilterCorrelation=0.4
+correlationThreshold=0.4
 tf.pool <- (intersect(trenaSGM::allKnownTFs(identifierType="geneSymbol"), mcols(MotifDb)$geneSymbol))
 tf.pool <- intersect(tf.pool, rownames(mtx))
 printf("using %d tfs, each with a MotifDb matrix and expression in mtx", length(tf.pool))

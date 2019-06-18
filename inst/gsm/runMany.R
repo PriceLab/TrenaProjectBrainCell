@@ -47,7 +47,7 @@ stopifnot(exists("goi"))
 if(!file.exists(OUTPUTDIR)) dir.create(OUTPUTDIR)
 if(!file.exists(LOGDIR)) dir.create(LOGDIR)
 #----------------------------------------------------------------------------------------------------
-basic.build.spec <- list(title="cell-type-specific-brain-microglia",
+basic.build.spec <- list(title="cell-type-specific-brain-astro",
                          type="footprint.database",
                          stageDirectory=OUTPUTDIR,
                          genomeName="hg38",
@@ -95,15 +95,44 @@ buildModel <- function(short.spec)
    spec$regions <- determineRegulatoryRegions(targetGene)
 
    spec$geneSymbol <- targetGene
-
-   builder <- FootprintDatabaseModelBuilder(genomeName, targetGene, spec, quiet=FALSE)
-   results <- build(builder)
-
+   
+   goodEnoughCor <- checkCor(targetGene, mtx)
+   if(!goodEnoughCor)
+      results <- list(model=data.frame(), regulatoryRegions=data.frame())
+   else{
+       builder <- FootprintDatabaseModelBuilder(genomeName, targetGene, spec, quiet=FALSE)
+       results <- build(builder)
+   }
+   # to not save the footprints, go into results and make the footprints an empty dataframe. 
    save(results, file=filename)
 
    return(results)
 
 } # buildModel
+#----------------------------------------------------------------------------------------------------
+# small check to see if there are enough TFs that correlate to run a model
+   
+checkCor <- function(targetGene, mtx)
+{
+   target.gene.expression <- mtx[targetGene,]
+
+   other.tfs <- intersect(rownames(mtx), allKnownTFs())
+
+   # is our target.gene itself a TF? If so, eliminate it
+   target.gene.among.tfs <- match(targetGene, other.tfs)
+   if(!is.na(target.gene.among.tfs))
+   other.tfs <- other.tfs[-target.gene.among.tfs]
+
+   mtx.test <- mtx[other.tfs,]
+
+   correlations <- abs(apply(mtx.test, 1, function(row) cor(target.gene.expression, row)))
+   range.of.correlations <- fivenum(correlations)
+   print(fivenum(correlations))
+   third.quartile <- range.of.correlations[4]
+   max <- range.of.correlations[5]
+
+   return(third.quartile > 0.25)  
+}
 #----------------------------------------------------------------------------------------------------
 do.run <- function(genes, parallel=TRUE)
 {
