@@ -10,7 +10,10 @@ trenaProject <- TrenaProjectBrainCell()
 
 # I added some minor parcing of the expression matrix to get rid of genes with no expression.
 #matrix.name <- "Micro_TYROBP"
-matrix.name <- "Astro_FGFR3"
+#matrix.name <- "Astro_FGFR3"
+#matrix.name <- "OPC_PDGFRA"
+#matrix.name <- "Inh_ALL"
+matrix.name <- "TCX_counts_scaled"
 stopifnot(matrix.name %in% getExpressionMatrixNames(trenaProject))
 mtx <- getExpressionMatrix(trenaProject, matrix.name)
 #mtx.df <- as.data.frame(mtx)
@@ -27,7 +30,7 @@ tbl.geneHancer <- get(load(system.file(package="TrenaProject", "extdata", "genom
 tbl.geneInfo <- get(load(system.file(package="TrenaProject", "extdata", "geneInfoTable_hg38.RData")))
 tbl.geneInfo <- tbl.geneInfo[!duplicated(tbl.geneInfo$geneSymbol),]
 
-OUTPUTDIR <- "/tmp/MODELS.cory.brain.astro"
+OUTPUTDIR <- "/tmp/MODELS.cory.brain.bulk.scaled"
 
 if(!file.exists(OUTPUTDIR))
    dir.create(OUTPUTDIR)

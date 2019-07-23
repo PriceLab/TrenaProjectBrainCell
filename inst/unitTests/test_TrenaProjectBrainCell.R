@@ -179,7 +179,8 @@ test_buildSingleGeneModel_slowGenes <- function()
    printf("--- test_buildSingleGeneModel_slowGenes")
 
    #slowGenes <- c("SF3A2", "ZNF764", "PRR12", "ALDH16A1", "EIF1AD", "ZNF44")  
-   slowGenes <-  "SF3A2"#"ABCB4"
+   #slowGenes <-  "SF3A2"#"ABCB4""
+   slowGenes <- "TCTA"
    genome <- "hg38"
    targetGene <- slowGenes[1]
    setTargetGene(tp, slowGenes[1])
@@ -188,7 +189,8 @@ test_buildSingleGeneModel_slowGenes <- function()
    
    tbl.regions <- getEnhancers(tp)[, c("chrom", "start", "end")]
    tbl.regions <- tbl.regions[order(tbl.regions$start, decreasing=FALSE),]
-   matrix.name <- "Micro_TYROBP"
+   #matrix.name <- "Micro_TYROBP"
+   matrix.name <- "Exc_ALL"
    checkTrue(matrix.name %in% getExpressionMatrixNames(tp))
    #load("/ssd/cory/github/TrenaProjectBrainCell/inst/extdata/expression/Micro_TYROBP.RData")
    mtx <- getExpressionMatrix(tp, matrix.name)

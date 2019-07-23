@@ -47,7 +47,7 @@ stopifnot(exists("goi"))
 if(!file.exists(OUTPUTDIR)) dir.create(OUTPUTDIR)
 if(!file.exists(LOGDIR)) dir.create(LOGDIR)
 #----------------------------------------------------------------------------------------------------
-basic.build.spec <- list(title="cell-type-specific-brain-astro",
+basic.build.spec <- list(title="debugging", #"cell-type-specific-brain-bulk"
                          type="footprint.database",
                          stageDirectory=OUTPUTDIR,
                          genomeName="hg38",
@@ -83,7 +83,14 @@ buildModel <- function(short.spec)
 
    filename <- sprintf("%s/%s.RData", OUTPUTDIR, targetGene)
    system(sprintf("touch %s", filename))  # so an empty file exists if the model building fails
+   
+   # this should be used if you need to skip genes for which the models are already in the OUTPUTDIR
+   all.models <- list.files(OUTPUTDIR, full=T)
+   good.models <- all.models[sapply(all.models, file.size) > 200] # I chose 200 because empty dataframes have a size of 160
 
+
+
+   #----------------
    tbl.geneLoc <- subset(tbl.geneInfo, geneSymbol==targetGene)[1,]
    chromosome <- tbl.geneLoc$chrom
    tss <- tbl.geneLoc$tss
@@ -110,6 +117,18 @@ buildModel <- function(short.spec)
 
 } # buildModel
 #----------------------------------------------------------------------------------------------------
+# precheck to see if model already exists (helpful if genome-scale-model is interupted)
+# this should be used if you need to skip genes for which the models are already in the OUTPUTDIR
+checkFile <- function(OUTPUTDIR)
+{
+   all.models <- list.files(OUTPUTDIR, full=T, pattern = ".RData")
+   good.models <- all.models[sapply(all.models, file.size) > 200] # I chose 200 because empty dataframes have a size of 160
+   good.names <- strsplit(good.models, "/")
+   just.names <- lapply(good.names, "[", 4)
+   just.names <- gsub(".RData", "", just.names)
+   return(just.names)
+}
+#----------------------------------------------------------------------------------------------------
 # small check to see if there are enough TFs that correlate to run a model
    
 checkCor <- function(targetGene, mtx)
@@ -131,7 +150,7 @@ checkCor <- function(targetGene, mtx)
    third.quartile <- range.of.correlations[4]
    max <- range.of.correlations[5]
 
-   return(third.quartile > 0.25)  
+   return(third.quartile > 0.15)  
 }
 #----------------------------------------------------------------------------------------------------
 do.run <- function(genes, parallel=TRUE)
@@ -193,8 +212,12 @@ if(!interactive()){
    stopifnot(endGeneIndex <= length(goi))
    stopifnot(startGeneIndex < endGeneIndex)
 
+   completed.models <- checkFile(OUTPUTDIR)
    goi.thisRun <- goi[startGeneIndex:endGeneIndex]
+   goi.thisRun <- setdiff(goi.thisRun, completed.models)
    printf("running with genes %d - %d", startGeneIndex, endGeneIndex)
+     
    x <- do.run(goi.thisRun, parallel=TRUE)
-   }
+   
+}
 #------------------------------------------------------------------------------

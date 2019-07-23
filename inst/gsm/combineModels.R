@@ -3,8 +3,10 @@
 #-------------------------------------------------------------------------------------------------------
 library(trenaSGM)
 #-------------------------------------------------------------------------------------------------------
-target.dir <- "/tmp/MODELS.cory.brain.micro"
-
+#target.dir <- "/tmp/MODELS.cory.brain.micro"
+#target.dir <- "/proj/price4/cory/genome_scale_trns/MODELS.cory.brain.micro.new"
+#target.dir <- "/proj/price4/cory/genome_scale_trns/MODELS.cory.brain"
+target.dir <- "/tmp/MODELS.cory.brain.bulk.scaled"
 stopifnot(file.exists(target.dir))
 files <- grep(".RData$", list.files(target.dir), value=TRUE)
 length(files)
@@ -35,5 +37,5 @@ for(file in files){
 tbl.models <- do.call(rbind, tbls.all)
 dim(tbl.models)
 rownames(tbl.models) <- NULL
-save(tbl.models, file=file.path(target.dir, "tbl.models.microglia.June3.RData"))
-    
+save(tbl.models, file=file.path(target.dir, "tbl.models.brain.bulk.July22.RData"))
+save(tbl.models, file="/proj/price4/cory/genome_scale_trns/july_models/tbl.models.brain.bulk.July22.RData")    
