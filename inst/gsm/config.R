@@ -30,7 +30,7 @@ tbl.geneHancer <- get(load(system.file(package="TrenaProject", "extdata", "genom
 tbl.geneInfo <- get(load(system.file(package="TrenaProject", "extdata", "geneInfoTable_hg38.RData")))
 tbl.geneInfo <- tbl.geneInfo[!duplicated(tbl.geneInfo$geneSymbol),]
 
-OUTPUTDIR <- "/tmp/MODELS.cory.brain.bulk.scaled"
+OUTPUTDIR <- "/tmp/MODELS.cory.brain.bulk.noMotif"
 
 if(!file.exists(OUTPUTDIR))
    dir.create(OUTPUTDIR)
