@@ -62,7 +62,7 @@ test_footprintDatabases <- function()
 test_expressionMatrices <- function()
 {
    message(sprintf("--- test_expressionMatrices"))
-    
+
    expected.matrix <- "Micro_TYROBP"
    checkTrue(all(expected.matrix %in% getExpressionMatrixNames(tp)))
 
@@ -159,7 +159,7 @@ test_buildSingleGeneModel <- function()
    fpBuilder <- FootprintDatabaseModelBuilder(genome, targetGene,  build.spec, quiet=FALSE)
    suppressWarnings(x <- build(fpBuilder))
    lapply(x, dim)
-   
+
    checkEquals(sort(names(x)), c("model", "regulatoryRegions"))
    tbl.regulatoryRegions <- x$regulatoryRegions
    tbl.model <- x$model
@@ -173,12 +173,12 @@ test_buildSingleGeneModel <- function()
 
 } # test_buildSingleGeneModel
 #------------------------------------------------------------------------------------------------------------------------
-# cory's top genes producing huge output (5 jun 2019): "SF3A2" "ZNF764" "PRR12" "ALDH16A1" "EIF1AD" "ZNF44"   
+# cory's top genes producing huge output (5 jun 2019): "SF3A2" "ZNF764" "PRR12" "ALDH16A1" "EIF1AD" "ZNF44"
 test_buildSingleGeneModel_slowGenes <- function()
 {
    printf("--- test_buildSingleGeneModel_slowGenes")
 
-   #slowGenes <- c("SF3A2", "ZNF764", "PRR12", "ALDH16A1", "EIF1AD", "ZNF44")  
+   #slowGenes <- c("SF3A2", "ZNF764", "PRR12", "ALDH16A1", "EIF1AD", "ZNF44")
    #slowGenes <-  "SF3A2"#"ABCB4""
    slowGenes <- "TCTA"
    genome <- "hg38"
@@ -186,7 +186,7 @@ test_buildSingleGeneModel_slowGenes <- function()
    setTargetGene(tp, slowGenes[1])
 
    tss <- getTranscriptsTable(tp, targetGene)$tss
-   
+
    tbl.regions <- getEnhancers(tp)[, c("chrom", "start", "end")]
    tbl.regions <- tbl.regions[order(tbl.regions$start, decreasing=FALSE),]
    #matrix.name <- "Micro_TYROBP"
@@ -198,7 +198,7 @@ test_buildSingleGeneModel_slowGenes <- function()
 
    other.tfs <- intersect(rownames(mtx), allKnownTFs())
 
-   # is our target.gene itself a TF?  
+   # is our target.gene itself a TF?
    # if so, it will skew the overall correlations: eliminate it
 
    target.gene.among.tfs <- match(targetGene, other.tfs)
@@ -212,9 +212,9 @@ test_buildSingleGeneModel_slowGenes <- function()
    third.quartile <- range.of.correlations[4]
    max <- range.of.correlations[5]
 
-   if(third.quartile > 0.25) # then proceed   
+   if(third.quartile > 0.25) # then proceed
 
-   build.spec <- list(title=sprintf("unit test on %s", targetGene), 
+   build.spec <- list(title=sprintf("unit test on %s", targetGene),
                       type="footprint.database",
                       regions=tbl.regions,
                       geneSymbol=targetGene,
@@ -287,4 +287,79 @@ test_buildSingleGeneModel_RBMXP2 <- function()
    checkException(x <- build(fpBuilder), silent=TRUE)
 
 } # test_buildSingleGeneModel_RBMXP2
+#------------------------------------------------------------------------------------------------------------------------
+# build mef2c model with footprints, and simply based on expression (with all TFs)
+test_buildSingleGeneModel_MEF2C <- function()
+{
+   printf("--- test_buildSingleGeneModel_MEF2C")
+
+   genome <- "hg38"
+   targetGene <- "MEF2C"
+
+   setTargetGene(tp, targetGene)
+   tbl.geneInfo <- getTranscriptsTable(tp)
+   brain.related.tissues <- grep("brain", listTissues(tp@genehancer), ignore.case=TRUE, v=TRUE)
+   tbl.enhancers <- getEnhancers(tp, tissues=brain.related.tissues)
+   dim(tbl.enhancers)
+
+   tbl.regions <- subset(tbl.enhancers, elite==TRUE)
+   dim(tbl.regions)
+
+   matrix.name <- "Micro_TYROBP"
+   checkTrue(matrix.name %in% getExpressionMatrixNames(tp))
+   mtx <- getExpressionMatrix(tp, matrix.name)
+   dim(mtx)
+
+   recipe <- list(title="TREM2 with genehancer",
+                  type="footprint.database",
+                      regions=tbl.regions,
+                      geneSymbol=targetGene,
+                      tss=tbl.geneInfo$tss,
+                      matrix=mtx,
+                      db.host=getFootprintDatabaseHost(tp),
+                      db.port=getFootprintDatabasePort(tp),
+                      databases=getFootprintDatabaseNames(tp),
+                      annotationDbFile=dbfile(org.Hs.eg.db),
+                      motifDiscovery="builtinFimo",
+                      tfPool=allKnownTFs(),
+                      tfMapping="MotifDB",
+                      tfPrefilterCorrelation=0.1,
+                      orderModelByColumn="rfScore",
+                      solverNames=c("lasso", "lassopv", "pearson", "randomForest", "ridge", "spearman"))
+
+   fpBuilder <- FootprintDatabaseModelBuilder(genome, targetGene,  recipe, quiet=FALSE)
+   x.fp <- build(fpBuilder)
+
+      #------------------------------------------------------------
+      # now a "noDNA" model
+      #------------------------------------------------------------
+
+   candidate.tfs <- intersect(rownames(mtx), allKnownTFs())
+   length(candidate.tfs)   # 1102
+
+   recipe.noDNA <- list(title="trem2.noDNA.allTFs",
+                        type="noDNA.tfsSupplied",
+                        matrix=mtx,
+                        candidateTFs=candidate.tfs,
+                        tfPool=allKnownTFs(),
+                        tfPrefilterCorrelation=0.5,
+                        annotationDbFile=dbfile(org.Hs.eg.db),
+                        orderModelByColumn="rfScore",
+                        solverNames=c("lasso", "lassopv", "pearson", "randomForest", "ridge", "spearman"),
+                        quiet=TRUE)
+
+   builder <- NoDnaModelBuilder(genome, targetGene,  recipe.noDNA, quiet=FALSE
+   x <- build(builder)
+   checkEquals(x$regulatoryRegions, data.frame())
+   tbl.model <- x$model
+      # with a relaxed tfPrefilterCorrelation, and the hand-picked TFs listed above
+      # all but "bogus" make the cut
+
+
+
+} # test_buildSingleGeneModel_RBMXP2
+#------------------------------------------------------------------------------------------------------------------------
+
+
+
 
