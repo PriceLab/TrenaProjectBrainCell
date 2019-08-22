@@ -36,7 +36,7 @@ if(!file.exists(OUTPUTDIR))
    dir.create(OUTPUTDIR)
 
 WORKERS <- 20
-SOLVERS <- c("lasso", "lassopv", "pearson", "randomForest", "ridge", "spearman", "sqrtLasso")
+SOLVERS <- c("lasso", "lassopv", "pearson", "randomForest", "ridge", "spearman") # , "sqrtLasso")
 
 LOGDIR <- file.path(OUTPUTDIR, "logs")
 

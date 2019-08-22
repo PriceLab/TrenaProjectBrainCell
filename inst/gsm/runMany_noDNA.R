@@ -23,6 +23,11 @@ library(org.Hs.eg.db)
 #------------------------------------------------------------------------------
 stopifnot(packageVersion("trena") >= "1.5.13")
 stopifnot(packageVersion("trenaSGM") >= "0.99.76")
+stopifnot(packageVersion("TrenaProjectBrainCell") >= "1.0.0")
+stopifnot(packageVersion("TrenaProjectHG38") >= "1.0.2")
+stopifnot(packageVersion("TrenaProject") >= "1.2.1")
+stopifnot(packageVersion("trenaSGM") >= "0.99.92")
+stopifnot(packageVersion("trena") >= "1.7.7")
 #------------------------------------------------------------------------------
 # we need a configuration file (of R commands), specified on the command line
 # informing us of how to run this whole genome parallelized script
@@ -47,18 +52,20 @@ stopifnot(exists("goi"))
 if(!file.exists(OUTPUTDIR)) dir.create(OUTPUTDIR)
 if(!file.exists(LOGDIR)) dir.create(LOGDIR)
 #----------------------------------------------------------------------------------------------------
-build.spec <- list(title=".noDNA.allTFs",
-                      type="noDNA.tfsSupplied",
-                      stageDirectory=OUTPUTDIR,
-                      genomeName="hg38",
-                      matrix=mtx,
-                      tfPool=allKnownTFs(),
-                      tfs=allKnownTFs(),
-                      tfPrefilterCorrelation=0.3,
-                      annotationDbFile=dbfile(org.Hs.eg.db),
-                      orderModelByColumn="rfScore",
-                      solverNames=SOLVERS,
-                      solvers=SOLVERS)
+basic.build.spec <- list(title=".noDNA.allTFs",
+                        type="noDNA.tfsSupplied",
+                        stageDirectory=OUTPUTDIR,
+                        genomeName="hg38",
+                        matrix=mtx,
+                        candidateTFs=intersect(rownames(mtx), allKnownTFs()),
+                        tfPool=allKnownTFs(),
+                        tfs=allKnownTFs(),
+                        tfPrefilterCorrelation=0.5,
+                        annotationDbFile=dbfile(org.Hs.eg.db),
+                        orderModelByColumn="rfScore",
+                        solverNames=SOLVERS,
+                        solvers=SOLVERS,
+                        quiet=FALSE)
 #----------------------------------------------------------------------------------------------------
 buildModel <- function(short.spec)
 {
@@ -73,39 +80,35 @@ buildModel <- function(short.spec)
    printf("********* [building model for %s, parallel = %s]", short.spec$targetGene, short.spec$runParallel)
 
 
-   spec <- basic.build.spec
-   targetGene <- short.spec$targetGene
-
-   filename <- sprintf("%s/%s.RData", OUTPUTDIR, targetGene)
+   filename <- sprintf("%s/%s.RData", OUTPUTDIR, short.spec$targetGene)
    system(sprintf("touch %s", filename))  # so an empty file exists if the model building fails
-   
+
    # this should be used if you need to skip genes for which the models are already in the OUTPUTDIR
-   all.models <- list.files(OUTPUTDIR, full=T)
-   good.models <- all.models[sapply(all.models, file.size) > 200] # I chose 200 because empty dataframes have a size of 160
-
-
+   # all.models <- list.files(OUTPUTDIR, full=T)
+   # good.models <- all.models[sapply(all.models, file.size) > 200] # I chose 200 because empty dataframes have a size of 160
 
    #----------------
-   tbl.geneLoc <- subset(tbl.geneInfo, geneSymbol==targetGene)[1,]
-   chromosome <- tbl.geneLoc$chrom
-   tss <- tbl.geneLoc$tss
-   genomeName <- spec$genomeName
-
+   #tbl.geneLoc <- subset(tbl.geneInfo, geneSymbol==targetGene)[1,]
+   #chromosome <- tbl.geneLoc$chrom
+   #tss <- tbl.geneLoc$tss
+   #genomeName <- spec$genomeName
+   targetGene <- short.spec$targetGene
    spec <- basic.build.spec
    spec$targetGene <- targetGene
-   spec$tss=tss
-   spec$regions <- determineRegulatoryRegions(targetGene)
+   #spec$tss=tss
+   #spec$regions <- determineRegulatoryRegions(targetGene)
 
    spec$geneSymbol <- targetGene
-   
    goodEnoughCor <- checkCor(targetGene, mtx)
+
    if(!goodEnoughCor)
       results <- list(model=data.frame(), regulatoryRegions=data.frame())
    else{
-       builder <- FootprintDatabaseModelBuilder(genomeName, targetGene, spec, quiet=FALSE)
-       results <- build(builder)
-   }
-   # to not save the footprints, go into results and make the footprints an empty dataframe. 
+      builder <- NoDnaModelBuilder(spec$genomeName, targetGene, spec, quiet=FALSE)
+      timing.info <- system.time(results <- build(builder))
+      message(sprintf("time for %s: %f", targetGene, timing.info[["elapsed"]]))
+     }
+     # to not save the footprints, go into results and make the footprints an empty dataframe.
    save(results, file=filename)
 
    return(results)
@@ -125,7 +128,7 @@ checkFile <- function(OUTPUTDIR)
 }
 #----------------------------------------------------------------------------------------------------
 # small check to see if there are enough TFs that correlate to run a model
-   
+
 checkCor <- function(targetGene, mtx)
 {
    target.gene.expression <- mtx[targetGene,]
@@ -145,7 +148,7 @@ checkCor <- function(targetGene, mtx)
    third.quartile <- range.of.correlations[4]
    max <- range.of.correlations[5]
 
-   return(third.quartile > 0.15)  
+   return(third.quartile > 0.15)
 }
 #----------------------------------------------------------------------------------------------------
 do.run <- function(genes, parallel=TRUE)
@@ -202,17 +205,24 @@ test_fourGenes <- function(useParallel=FALSE)
 } # test_fourGenes
 #----------------------------------------------------------------------------------------------------
 if(!interactive()){
-
    stopifnot(startGeneIndex < length(goi))
    stopifnot(endGeneIndex <= length(goi))
    stopifnot(startGeneIndex < endGeneIndex)
-
    completed.models <- checkFile(OUTPUTDIR)
    goi.thisRun <- goi[startGeneIndex:endGeneIndex]
    goi.thisRun <- setdiff(goi.thisRun, completed.models)
    printf("running with genes %d - %d", startGeneIndex, endGeneIndex)
-     
    x <- do.run(goi.thisRun, parallel=TRUE)
-   
-}
+   }
+if(interactive()){  # for development and debugging
+   startGeneIndex <- 61
+   endGeneIndex <- 70
+   completed.models <- checkFile(OUTPUTDIR)
+   goi.thisRun <- goi[startGeneIndex:endGeneIndex]
+   goi.thisRun <- setdiff(goi.thisRun, completed.models)
+   printf("running with genes %d - %d", startGeneIndex, endGeneIndex)
+   x <- do.run(goi.thisRun, parallel=FALSE)
+  }
+
+
 #------------------------------------------------------------------------------
