@@ -45,23 +45,18 @@ TrenaProjectBrainCell <- function(quiet=TRUE)
       }
 
    footprintDatabaseNames <- c("brain_hint_16",  "brain_hint_20", "brain_wellington_16", "brain_wellington_20")
-   expressionDirectory <- system.file(package="TrenaProjectBrainCell", "extdata", "expression")
-   variantsDirectory <- system.file(package="TrenaProjectBrainCell", "extdata", "variants")
    footprintDatabaseHost <- "khaleesi.systemsbiology.net"
    footprintDatabasePort <- 5432
+   dataDirectory <- system.file(package="TrenaProjectBrainCell", "extdata")
 
    covariatesFile <- NA_character_;
-
-   stopifnot(file.exists(expressionDirectory))
 
    .TrenaProjectBrainCell(TrenaProjectHG38(projectName="TrenaProjectBrainCell",
                                        supportedGenes=geneSets[[1]],
                                        footprintDatabaseHost=footprintDatabaseHost,
                                        footprintDatabasePort=footprintDatabasePort,
                                        footprintDatabaseNames=footprintDatabaseNames,
-                                       expressionDirectory=expressionDirectory,
-                                       variantsDirectory=variantsDirectory,
-                                       covariatesFile=covariatesFile,
+                                       packageDataDirectory=dataDirectory,
                                        quiet=quiet
                                        ))
 

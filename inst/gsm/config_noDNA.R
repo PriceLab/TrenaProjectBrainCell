@@ -3,8 +3,8 @@ library(TrenaProjectBrainCell)
 
 printf("--- reading config.R")
 
-stopifnot(packageVersion("TrenaProject") >= "0.99.37")
-#stopifnot(packageVersion("TrenaProjectBrainCell") >= "0.99.04")
+stopifnot(packageVersion("TrenaProject") >= "1.2.1")
+stopifnot(packageVersion("TrenaProjectBrainCell") >= "1.0.0")
 
 trenaProject <- TrenaProjectBrainCell()
 
@@ -12,13 +12,6 @@ trenaProject <- TrenaProjectBrainCell()
 matrix.name <- "TCX_counts_scaled"
 stopifnot(matrix.name %in% getExpressionMatrixNames(trenaProject))
 mtx <- getExpressionMatrix(trenaProject, matrix.name)
-
-tbl.geneHancer <- get(load(system.file(package="TrenaProject", "extdata", "genomeAnnotation", "geneHancer.v4.7.allGenes.RData")))
-
-# there might be a bettter solution, but for now, I'm going to make sure there's only one gene symbol per gene here
-# the reason is that the determineRegulatoryRegions function doesn't currently handle things well when there's more than one entry for tbl.geneInfo
-tbl.geneInfo <- get(load(system.file(package="TrenaProject", "extdata", "geneInfoTable_hg38.RData")))
-tbl.geneInfo <- tbl.geneInfo[!duplicated(tbl.geneInfo$geneSymbol),]
 
 OUTPUTDIR <- "/tmp/MODELS.cory.brain.bulk.noMotif"
 
@@ -30,10 +23,6 @@ SOLVERS <- c("lasso", "lassopv", "pearson", "randomForest", "ridge", "spearman",
 
 LOGDIR <- file.path(OUTPUTDIR, "logs")
 
-trenaProject <- TrenaProjectBrainCell()
-
-
-desired.footprint.databases <- getFootprintDatabaseNames(trenaProject)
 
 #------------------------------------------------------------------------------------------------------------------------
 # we want one gene for which we have genehancer regions, and one without.
