@@ -37,5 +37,5 @@ for(file in files){
 tbl.models <- do.call(rbind, tbls.all)
 dim(tbl.models)
 rownames(tbl.models) <- NULL
-save(tbl.models, file=file.path(target.dir, "tbl.models.brain.bulk.July22.RData"))
-save(tbl.models, file="/proj/price4/cory/genome_scale_trns/july_models/tbl.models.brain.bulk.July22.RData")    
+save(tbl.models, file=file.path(target.dir, "tbl.models.brain.bulk.Aug3.RData"))
+save(tbl.models, file="/proj/price4/cory/genome_scale_trns/july_models/tbl.models.brain.bulk.Aug3.RData")    

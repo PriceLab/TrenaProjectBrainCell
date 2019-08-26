@@ -47,8 +47,8 @@ stopifnot(exists("goi"))
 if(!file.exists(OUTPUTDIR)) dir.create(OUTPUTDIR)
 if(!file.exists(LOGDIR)) dir.create(LOGDIR)
 #----------------------------------------------------------------------------------------------------
-basic.build.spec <- list(title="debugging", #"cell-type-specific-brain-bulk"
-                         type="noDNA.tfsSupplied", #"footprint.database"
+basic.build.spec <- list(title="cell-type-specific-brain-bulk",
+                         type="footprint.database",
                          stageDirectory=OUTPUTDIR,
                          genomeName="hg38",
                          matrix=mtx,
