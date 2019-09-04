@@ -172,7 +172,7 @@ test_buildSingleGeneModel <- function()
    tbl.model <- tbl.model[order(tbl.model$rfScore, decreasing=TRUE),]
    checkTrue(all(tbl.model$gene %in% tbl.regulatoryRegions$geneSymbol))
    checkTrue(nrow(x$model) > 50)
-   checkTrue("TP53" %in% head(x$model$gene))
+   checkTrue("TP53" %in% head(x$model$gene, n=20))
    checkTrue(max(tbl.model$pearsonCoeff) > 0.85)
      # a modest sanity check on pearsonCoeff: should be exactly what we see in the expression matrix
    checkEqualsNumeric(cor(mtx["APOE",], mtx["TP53",]), subset(tbl.model, gene=="TP53")$pearsonCoeff)
@@ -367,7 +367,7 @@ test_buildSingleGeneModel_footprintsAndWithout_MEF2C <- function()
    new.tfs.withoutBindingSites <- setdiff(head(tbl.model)$gene, head(x.fp$model)$gene)
    checkTrue("CSRNP3" %in% new.tfs.withoutBindingSites)
 
-} #  test_buildSingleGeneModel_footprintsAndWithout_MEF2C
+} #  test_buildSingleGeneModel_footprintsgAndWithout_MEF2C
 #------------------------------------------------------------------------------------------------------------------------
 if(!interactive())
    runTests()
