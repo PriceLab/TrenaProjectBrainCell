@@ -360,11 +360,12 @@ test_buildSingleGeneModel_footprintsAndWithout_MEF2C <- function()
 
    checkEquals(x.noDNA$regulatoryRegions, data.frame())
    tbl.model <- x.noDNA$model
+   checkTrue(nrow(tbl.model) > 600)  # 708 on (3 apr 2020)
 
-
-   tfs.in.both <- intersect(head(tbl.model)$gene, head(x.fp$model)$gene)
-   checkTrue(all(c("PKNOX2", "HLF", "DLX1") %in% tfs.in.both))
-   new.tfs.withoutBindingSites <- setdiff(head(tbl.model)$gene, head(x.fp$model)$gene)
+   tfs.in.both <- intersect(tbl.model$gene, x.fp$model$gene)
+   checkTrue(length(tfs.in.both) > 10)
+   new.tfs.withoutBindingSites <- setdiff(tbl.model$gene, x.fp$model$gene)
+   checkTrue(length(new.tfs.withoutBindingSites) > 500)
    checkTrue("CSRNP3" %in% new.tfs.withoutBindingSites)
 
 } #  test_buildSingleGeneModel_footprintsgAndWithout_MEF2C

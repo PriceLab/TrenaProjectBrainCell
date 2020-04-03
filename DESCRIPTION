@@ -1,7 +1,7 @@
 Package: TrenaProjectBrainCell
 Title: Temporal cortex gene expression deconvoluted into cell types
-Date: 2019-09-03
-Version: 1.0.2
+Date: 2020-04-03
+Version: 1.0.3
 Author: Cory Funk, Paul Shannon
 Maintainer: Cory Funk <cfunk@systemsbiology.org>
 Description: Trena and TrenaViz project to explore Temporal cortex cell type gene regulation
@@ -10,4 +10,4 @@ Depends: R (>= 3.5.0), TrenaProjectHG38 (>= 0.99.40), trenaSGM (>= 0.99.80)
 License: Apache 2.0
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
